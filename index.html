@@ -68,10 +68,11 @@
         }
 
         .logo-container .subtitle {
-            font-size: 0.7em;
-            font-weight: 500;
+            font-size: 0.8em;
+            font-weight: 600;
             color: #6b7280;
             margin: 0;
+            margin-top: 2px;
         }
 
         header nav {
@@ -95,16 +96,17 @@
             background-color: #eef2ff;
             color: var(--primary-color);
         }
-        #user-info {
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: #374151;
-        }
         header nav .fas, header nav .far {
             font-size: 1.1em;
         }
+
+        /* --- NEW: Style for Active Navigation Link --- */
+        header nav a.nav-active {
+            color: var(--primary-color);
+            font-weight: 700;
+            background-color: #eef2ff;
+        }
+
 
         /* Utility */
         .hidden { display: none !important; }
@@ -167,7 +169,21 @@
         .stat { text-align: center; }
         .stat-value { font-size: 2em; font-weight: bold; }
         .stat-label { font-size: 0.8em; text-transform: uppercase; color: #6b7280; }
-        #typing-area { font-size: 1.6em; line-height: 1.8; background-color: var(--card-bg); padding: 30px; border-radius: 16px; box-shadow: var(--card-shadow); margin-bottom: 20px; max-height: 250px; overflow-y: auto; }
+        
+        #typing-area {
+            font-size: 1.6em;
+            line-height: 1.8;
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            max-height: 140px;
+            overflow-y: auto;
+            -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        }
+
         #text-to-type span.correct { color: #16a34a; }
         #text-to-type span.incorrect { color: var(--error-color); text-decoration: underline; }
         #text-to-type span.current { background-color: rgba(59, 130, 246, 0.2); border-radius: 3px; }
@@ -180,95 +196,48 @@
         #leaderboard-list li .email { flex-grow: 1; color: #374151; word-break: break-all; }
         #leaderboard-list li .wpm { font-weight: 600; }
         
-        /* --- START: Improved CSS for Profile Screen --- */
-        #profile-stats-container {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-            margin-top: 20px;
-        }
-
-        .profile-test-record {
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .profile-test-record h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-            font-weight: 600;
-            color: var(--primary-color);
-            text-align: left;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .profile-test-record .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 15px;
-            text-align: center;
-        }
-        .profile-test-record .stat-value {
-            font-size: 1.8em;
-            font-weight: 600;
-            display: block;
-            color: #1f2937;
-        }
-         .profile-test-record .stat-label {
-            font-size: 0.8em;
-            text-transform: uppercase;
-            color: #6b7280;
-        }
-        /* --- END: Improved CSS for Profile Screen --- */
+        /* Profile Screen CSS */
+        #profile-stats-container { display: flex; flex-direction: column; gap: 25px; margin-top: 20px; }
+        .profile-test-record { background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; }
+        .profile-test-record h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.3em; font-weight: 600; color: var(--primary-color); text-align: left; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .profile-test-record .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 15px; text-align: center; }
+        .profile-test-record .stat-value { font-size: 1.8em; font-weight: 600; display: block; color: #1f2937; }
+        .profile-test-record .stat-label { font-size: 0.8em; text-transform: uppercase; color: #6b7280; }
 
         /* Form Styles */
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
         .form-group input { width: 100%; padding: 12px; font-size: 1em; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; }
         .error-message { color: var(--error-color); text-align: center; margin-top: 15px; }
+        .form-switch-link { text-align: center; margin-top: 25px; font-size: 1em; color: #6b7280; }
+        .form-switch-link a { color: var(--primary-color); font-weight: 600; text-decoration: none; cursor: pointer; }
+        .form-switch-link a:hover { text-decoration: underline; }
+
+        /* Custom Text Screen Specific Styles */
+        #custom-text-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 15px;
+            font-size: 1em;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            margin-bottom: 20px;
+            font-family: inherit;
+        }
 
         /* Mobile Responsive Styles */
         @media (max-width: 768px) {
             .container { padding: 10px; }
-            header {
-                flex-direction: column;
-                gap: 10px;
-                padding: 15px;
-            }
-            .card {
-                padding: 20px;
-            }
-            .card h1, .card h2 {
-                font-size: 1.8em;
-            }
-            .hero-stats {
-                gap: 20px;
-            }
-            .hero-stat .stat-value {
-                font-size: 2em;
-            }
-            #typing-area {
-                font-size: 1.2em;
-                max-height: 200px;
-            }
-            #stats {
-                flex-wrap: wrap;
-                gap: 15px;
-            }
-            .stat-value {
-                font-size: 1.5em;
-            }
-            header nav a {
-                padding: 8px 10px;
-                gap: 5px;
-            }
-            header nav .nav-text {
-                display: none; /* Hide text on mobile, show only icons */
-            }
+            header { flex-direction: column; gap: 10px; padding: 15px; }
+            .card { padding: 20px; }
+            .card h1, .card h2 { font-size: 1.8em; }
+            .hero-stats { gap: 20px; }
+            .hero-stat .stat-value { font-size: 2em; }
+            #typing-area { font-size: 1.2em; max-height: 120px; }
+            #stats { flex-wrap: wrap; gap: 15px; }
+            .stat-value { font-size: 1.5em; }
+            header nav a { padding: 8px 10px; gap: 5px; }
+            header nav .nav-text { display: none; }
         }
     </style>
 </head>
@@ -284,7 +253,7 @@
                 <a href="#" id="register-nav-btn"><i class="fas fa-user-plus"></i><span class="nav-text">Register</span></a>
             </div>
             <div id="user-nav" class="hidden">
-                <a href="#" id="user-info"><i class="fas fa-user-circle"></i></a>
+                <a href="#" id="home-link"><i class="fas fa-home"></i><span class="nav-text">Home</span></a>
                 <a href="#" id="profile-link"><i class="fas fa-user-cog"></i><span class="nav-text">Profile</span></a>
                 <a href="#" id="leaderboard-link"><i class="fas fa-trophy"></i><span class="nav-text">Leaderboard</span></a>
                 <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i><span class="nav-text">Logout</span></a>
@@ -296,7 +265,7 @@
         <!-- Screens -->
         <section id="home-screen" class="card">
              <h1>Master Your Keystrokes</h1>
-             <p>Select a test below to improve your speed and accuracy.</p>
+             <p>Select a test below or use your own text to practice.</p>
              <div class="hero-stats">
                  <div class="hero-stat">
                      <div class="stat-value" id="home-best-wpm">--</div>
@@ -310,6 +279,12 @@
 
              <div class="presets-section">
                 <h3 class="presets-title">Choose a Test Preset</h3>
+                 <div class="preset-group">
+                    <h4>Custom Text</h4>
+                    <div class="preset-buttons">
+                        <button id="custom-text-btn" class="btn btn-primary">Practice with Custom Text</button>
+                    </div>
+                </div>
                 <div id="quick-start-buttons">
                     <div class="preset-group">
                         <h4>Seconds</h4>
@@ -339,6 +314,16 @@
                 </div>
              </div>
         </section>
+        
+        <section id="custom-text-screen" class="hidden card">
+            <h2>Custom Text Practice</h2>
+            <p>Paste your text below (minimum 20 characters) and start typing!</p>
+            <textarea id="custom-text-input" rows="8" placeholder="Paste your text here..."></textarea>
+            <div style="text-align: center;">
+                <button id="start-custom-test-btn" class="btn btn-primary">Start Custom Test</button>
+                <button id="custom-back-home-btn" class="btn btn-secondary">Back to Home</button>
+            </div>
+        </section>
 
         <section id="typing-test-screen" class="hidden">
             <div id="stats">
@@ -366,32 +351,22 @@
         <section id="login-screen" class="hidden card">
             <h2>Login</h2>
             <form id="login-form">
-                <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="email" id="login-email" required>
-                </div>
-                <div class="form-group">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" required>
-                </div>
+                <div class="form-group"><label for="login-email">Email</label><input type="email" id="login-email" required></div>
+                <div class="form-group"><label for="login-password">Password</label><input type="password" id="login-password" required></div>
                 <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
                 <p id="login-error" class="error-message hidden"></p>
+                <p class="form-switch-link">Don't have an account? <a id="go-to-register">Register</a></p>
             </form>
         </section>
 
         <section id="register-screen" class="hidden card">
             <h2>Register</h2>
             <form id="register-form">
-                <div class="form-group">
-                    <label for="register-email">Email</label>
-                    <input type="email" id="register-email" required>
-                </div>
-                <div class="form-group">
-                    <label for="register-password">Password</label>
-                    <input type="password" id="register-password" required>
-                </div>
+                <div class="form-group"><label for="register-email">Email</label><input type="email" id="register-email" required></div>
+                <div class="form-group"><label for="register-password">Password</label><input type="password" id="register-password" required></div>
                 <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
                 <p id="register-error" class="error-message hidden"></p>
+                <p class="form-switch-link">Already have an account? <a id="go-to-login">Login</a></p>
             </form>
         </section>
 
@@ -404,9 +379,7 @@
         <section id="profile-screen" class="hidden card">
             <h2>My Profile</h2>
             <p id="profile-email">user@example.com</p>
-            <div id="profile-stats-container">
-                <!-- Profile stats will be dynamically inserted here by JavaScript -->
-            </div>
+            <div id="profile-stats-container"></div>
             <button id="profile-back-home-btn" class="btn btn-secondary">Go Home</button>
         </section>
     </main>
@@ -442,86 +415,94 @@
             "Cloud computing has fundamentally changed the information technology landscape.", "By providing on-demand access to a shared pool of configurable computing resources, the cloud offers scalability, flexibility, and cost-effectiveness.", "Instead of investing in and maintaining their own physical servers, organizations can leverage services for infrastructure, platforms, and software from cloud providers.", "This model allows businesses to scale their operations quickly in response to changing demands."
         ];
 
-        // --- START: Improved Navigation and History Management ---
-
-        /**
-         * Manages screen visibility and browser history.
-         * @param {string} screenId The ID of the screen to show.
-         * @param {boolean} pushState If true, a new entry is pushed to the browser's history.
-         */
+        // --- START: Navigation and History Management ---
         function showScreen(screenId, pushState = true) {
             if (!document.getElementById(screenId)) {
                 console.error("Screen not found:", screenId);
                 return;
             }
-
-            // Hide all screens
             allScreens.forEach(screen => screen.classList.add('hidden'));
-            // Show the target screen
             document.getElementById(screenId).classList.remove('hidden');
             currentScreenId = screenId;
-
             if (pushState) {
-                // Create a clean URL for the home screen, and a hash-based URL for others.
-                const newPath = (screenId === 'home-screen')
-                    ? window.location.pathname + window.location.search
-                    : `#${screenId}`;
-                
-                // Push a new state to the history.
+                const newPath = (screenId === 'home-screen') ? window.location.pathname : `#${screenId}`;
                 history.pushState({ screen: screenId }, '', newPath);
+            }
+
+            // --- NEW: Update active navigation icon ---
+            updateActiveNav(screenId);
+        }
+
+        function updateActiveNav(screenId) {
+            // Remove active class from all nav links first
+            document.querySelectorAll('#user-nav a').forEach(link => {
+                link.classList.remove('nav-active');
+            });
+
+            // Add active class to the correct link based on the screenId
+            let activeLink;
+            switch(screenId) {
+                case 'home-screen':
+                case 'custom-text-screen': // Also highlight home when on custom text setup
+                case 'typing-test-screen': // Highlight home during test
+                case 'result-screen': // Highlight home on result screen
+                    activeLink = document.getElementById('home-link');
+                    break;
+                case 'profile-screen':
+                    activeLink = document.getElementById('profile-link');
+                    break;
+                case 'leaderboard-screen':
+                    activeLink = document.getElementById('leaderboard-link');
+                    break;
+                // No default case needed, if it's login/register, no user-nav is shown
+            }
+
+            if (activeLink) {
+                activeLink.classList.add('nav-active');
             }
         }
 
-        /**
-         * Handles the browser's back and forward buttons.
-         * It reads the state from the history and shows the corresponding screen.
-         */
         window.addEventListener('popstate', (event) => {
-            // If the history state has a screen, show it. Otherwise, default to the home screen.
-            // This ensures that navigating back past our app's history still lands on the home screen.
-            const screen = (event.state && event.state.screen) || 'home-screen';
-            // We pass 'false' because we are reacting to a history change, not creating a new one.
-            showScreen(screen, false);
+            const targetScreen = (event.state && event.state.screen) || 'home-screen';
+            showScreen(targetScreen, false);
         });
 
-        /**
-         * A function to cleanly navigate to the home screen. It pushes a new state
-         * so that the back button works as expected.
-         */
-        function navigateHome() {
-            showScreen('home-screen', true);
-        }
-
-        // --- END: Improved Navigation and History Management ---
+        function navigateHome() { showScreen('home-screen', true); }
+        // --- END: Navigation and History Management ---
 
         // --- Core Application Logic ---
         function shuffleArray(arr) { return [...arr].sort(() => Math.random() - 0.5); }
-        function addMoreText() {
-            const textToAdd = " " + shuffleArray(textPool).slice(0, 3).join(" ");
-            textToAdd.split('').forEach(char => {
+        
+        function setupTextForTest(text) {
+            textToType.innerHTML = '';
+            text.split('').forEach(char => {
                 const span = document.createElement('span');
                 span.innerText = char;
                 textToType.appendChild(span);
             });
         }
-        function startTest(mode, value) {
-            lastTestConfig = { mode, value };
+        
+        function startTest(mode, value, customText = null) {
+            lastTestConfig = { mode, value, customText };
             testActive = true;
             startTime = null;
             mistakes = 0;
             typedChars = 0;
             textInput.value = '';
             textInput.disabled = false;
-            textToType.innerHTML = '';
-            const initialText = shuffleArray(textPool).slice(0, 5).join(" ");
-            initialText.split('').forEach(char => {
-                const span = document.createElement('span');
-                span.innerText = char;
-                textToType.appendChild(span);
-            });
+            
+            const textToUse = customText || shuffleArray(textPool).slice(0, 5).join(" ");
+            setupTextForTest(textToUse);
+            
             showScreen('typing-test-screen');
             textInput.focus();
-            document.getElementById('timer').innerText = (mode === 'time') ? value : "Words";
+            
+            let timerLabel = "Time";
+            if (mode === 'time') timerLabel = value;
+            else if (mode === 'words') timerLabel = "Words";
+            else if (mode === 'custom') timerLabel = "Custom";
+            document.getElementById('timer').innerText = timerLabel;
+            
             updateCursor();
             resetLiveStats();
         }
@@ -576,23 +557,21 @@
 
         // --- Firebase & Auth Logic ---
         auth.onAuthStateChanged(user => {
-            const userInfoEl = document.getElementById('user-info');
             if (user) {
                 document.getElementById('guest-nav').classList.add('hidden');
                 document.getElementById('user-nav').classList.remove('hidden');
-                userInfoEl.innerHTML = `<i class="fas fa-user-circle"></i><span class="nav-text">${user.email.split('@')[0]}</span>`;
                 fetchUserStats(user.uid);
             } else {
                 document.getElementById('guest-nav').classList.remove('hidden');
                 document.getElementById('user-nav').classList.add('hidden');
-                userInfoEl.innerHTML = '';
                 document.getElementById('home-best-wpm').innerText = '--';
                 document.getElementById('home-tests-taken').innerText = '--';
             }
-            // On auth change, show the home screen but replace the current history state
-            // to prevent adding to the history stack on login/logout.
-            showScreen('home-screen', false);
-            history.replaceState({screen: 'home-screen'}, '', window.location.pathname);
+            if (currentScreenId !== 'home-screen' && !user) {
+                 showScreen('home-screen', false);
+                 history.replaceState({screen: 'home-screen'}, '', window.location.pathname);
+            }
+            updateActiveNav(currentScreenId); // Update nav on auth change
         });
 
         function fetchUserStats(uid) {
@@ -607,7 +586,7 @@
         
         async function saveResultsToFirebase(results, { mode, value }) {
             const user = auth.currentUser;
-            if (!user || results.wpm === 0 || !mode || !value) return;
+            if (!user || results.wpm === 0 || !mode || !value || mode === 'custom') return;
 
             const testKey = `${mode}_${value}`;
             const userStatsRef = db.ref(`users/${user.uid}`);
@@ -615,13 +594,7 @@
 
             try {
                 const snapshot = await userStatsRef.once('value');
-                const stats = snapshot.val() || {
-                    email: user.email,
-                    testsTaken: 0,
-                    overallBestWpm: 0,
-                    scores: {}
-                };
-                
+                const stats = snapshot.val() || { email: user.email, testsTaken: 0, overallBestWpm: 0, scores: {} };
                 const currentBestForTest = (stats.scores && stats.scores[testKey]) ? stats.scores[testKey] : { wpm: 0 };
                 
                 if (results.wpm > currentBestForTest.wpm) {
@@ -630,17 +603,14 @@
                 }
                 
                 const newOverallBest = Math.max(stats.overallBestWpm || 0, results.wpm);
-                
                 const updates = {
                     testsTaken: (stats.testsTaken || 0) + 1,
                     overallBestWpm: newOverallBest,
                     scores: stats.scores,
                     email: user.email
                 };
-
                 await userStatsRef.update(updates);
                 await leaderboardRef.set({ email: user.email, wpm: newOverallBest });
-
                 fetchUserStats(user.uid);
             } catch (error) {
                 console.error("Error saving results: ", error);
@@ -660,61 +630,60 @@
                         `<li><span class="rank">${index + 1}</span><span class="email">${score.email}</span><span class="wpm">${score.wpm} WPM</span></li>`
                     ).join('');
                 } else { leaderboardList.innerHTML = '<li>No scores yet. Be the first!</li>'; }
-            } catch (error) { leaderboardList.innerHTML = '<li>Could not load scores.</li>'; }
+            } catch (error) {
+                console.error("Failed to load leaderboard:", error);
+                leaderboardList.innerHTML = '<li>Could not load scores. Please check your connection or try again later.</li>';
+            }
         }
 
         async function showProfileScreen() {
             const user = auth.currentUser;
-            if (!user) {
-                showScreen('login-screen');
-                return;
-            }
+            if (!user) { showScreen('login-screen'); return; }
             showScreen('profile-screen');
-
             const profileContainer = document.getElementById('profile-stats-container');
             document.getElementById('profile-email').innerText = user.email;
             profileContainer.innerHTML = '<p>Loading your best scores...</p>';
             
-            const testTypes = [
-                { key: 'time_15', label: '15 Seconds Best' }, { key: 'time_30', label: '30 Seconds Best' },
-                { key: 'time_60', label: '60 Seconds Best' }, { key: 'time_120', label: '2 Minutes Best' },
-                { key: 'time_180', label: '3 Minutes Best' }, { key: 'time_300', label: '5 Minutes Best' },
-                { key: 'time_600', label: '10 Minutes Best' }, { key: 'time_900', label: '15 Minutes Best' },
-                { key: 'time_1200', label: '20 Minutes Best' }, { key: 'words_50', label: '50 Words Best' }
-            ];
+            const createLabelFromKey = (key) => {
+                const [type, value] = key.split('_');
+                if (type === 'time') {
+                    const seconds = parseInt(value, 10);
+                    return seconds >= 60 ? `${seconds / 60} Minute${seconds > 60 ? 's' : ''} Best` : `${seconds} Second${seconds > 1 ? 's' : ''} Best`;
+                }
+                return type === 'words' ? `${value} Word${parseInt(value, 10) > 1 ? 's' : ''} Best` : key;
+            };
 
             try {
                 const snapshot = await db.ref(`users/${user.uid}/scores`).once('value');
                 const scores = snapshot.val() || {};
+                const scoreKeys = Object.keys(scores);
                 let profileHtml = '';
 
-                if (Object.keys(scores).length === 0) {
+                if (scoreKeys.length === 0) {
                      profileHtml = '<p>You have not completed any tests yet. Go take one!</p>';
                 } else {
-                    testTypes.forEach(test => {
-                        const scoreData = scores[test.key];
-                        // Only display the card if a score exists for that test type
-                        if(scoreData) {
+                    scoreKeys.sort((a, b) => {
+                        const [typeA, valA] = a.split('_');
+                        const [typeB, valB] = b.split('_');
+                        if (typeA !== typeB) return typeA.localeCompare(typeB);
+                        return parseInt(valA, 10) - parseInt(valB, 10);
+                    }).forEach(key => {
+                        const scoreData = scores[key];
+                        if (scoreData) {
                             profileHtml += `
                                 <div class="profile-test-record">
-                                    <h3>${test.label}</h3>
+                                    <h3>${createLabelFromKey(key)}</h3>
                                     <div class="stats-grid">
                                         <div><span class="stat-value">${scoreData.wpm}</span><span class="stat-label">WPM</span></div>
                                         <div><span class="stat-value">${scoreData.cpm}</span><span class="stat-label">CPM</span></div>
                                         <div><span class="stat-value">${scoreData.accuracy}%</span><span class="stat-label">Accuracy</span></div>
                                         <div><span class="stat-value">${scoreData.mistakes}</span><span class="stat-label">Mistakes</span></div>
                                     </div>
-                                </div>
-                            `;
+                                </div>`;
                         }
                     });
-                     if (profileHtml === '') {
-                        profileHtml = '<p>You have not completed any of the standard tests yet.</p>';
-                    }
                 }
-                
-                profileContainer.innerHTML = profileHtml;
-
+                profileContainer.innerHTML = profileHtml || '<p>You have not completed any tests yet. Go take one!</p>';
             } catch (error) {
                 console.error("Could not load profile stats:", error);
                 profileContainer.innerHTML = '<p>Could not load your stats. Please try again.</p>';
@@ -727,33 +696,55 @@
         document.getElementById('login-nav-btn').addEventListener('click', (e) => { preventDefault(e); showScreen('login-screen'); });
         document.getElementById('register-nav-btn').addEventListener('click', (e) => { preventDefault(e); showScreen('register-screen'); });
         document.getElementById('leaderboard-link').addEventListener('click', (e) => { preventDefault(e); showLeaderboard(); });
-        document.getElementById('logout-btn').addEventListener('click', (e) => { preventDefault(e); auth.signOut(); });
+        document.getElementById('logout-btn').addEventListener('click', (e) => { preventDefault(e); auth.signOut().then(navigateHome); });
+        document.getElementById('home-link').addEventListener('click', (e) => { preventDefault(e); navigateHome(); });
         document.getElementById('home-btn').addEventListener('click', (e) => { preventDefault(e); navigateHome(); });
         document.getElementById('profile-link').addEventListener('click', (e) => { preventDefault(e); showProfileScreen(); });
         document.getElementById('profile-back-home-btn').addEventListener('click', (e) => { preventDefault(e); navigateHome(); });
+        document.getElementById('go-to-register').addEventListener('click', (e) => { preventDefault(e); showScreen('register-screen'); });
+        document.getElementById('go-to-login').addEventListener('click', (e) => { preventDefault(e); showScreen('login-screen'); });
 
         document.getElementById('login-form').addEventListener('submit', (e) => {
             preventDefault(e);
+            const errEl = document.getElementById('login-error');
+            errEl.classList.add('hidden');
             auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-password').value)
-                .catch(err => { document.getElementById('login-error').innerText = err.message; document.getElementById('login-error').classList.remove('hidden'); });
+                .then(() => navigateHome())
+                .catch(err => { errEl.innerText = err.message; errEl.classList.remove('hidden'); });
         });
         document.getElementById('register-form').addEventListener('submit', (e) => {
             preventDefault(e);
+            const errEl = document.getElementById('register-error');
+            errEl.classList.add('hidden');
             auth.createUserWithEmailAndPassword(document.getElementById('register-email').value, document.getElementById('register-password').value)
-                .catch(err => { document.getElementById('register-error').innerText = err.message; document.getElementById('register-error').classList.remove('hidden'); });
+                .then(() => navigateHome())
+                .catch(err => { errEl.innerText = err.message; errEl.classList.remove('hidden'); });
         });
-
+        
         document.getElementById('quick-start-buttons').addEventListener('click', (e) => {
-            if (e.target.tagName === 'BUTTON') {
+            if (e.target.tagName === 'BUTTON' && e.target.dataset.mode) {
                 startTest(e.target.dataset.mode, parseInt(e.target.dataset.duration || e.target.dataset.count, 10));
             }
         });
 
-        document.getElementById('retry-btn').addEventListener('click', () => {
-             if (lastTestConfig.mode) startTest(lastTestConfig.mode, lastTestConfig.value);
-             else navigateHome();
+        document.getElementById('custom-text-btn').addEventListener('click', () => showScreen('custom-text-screen'));
+        document.getElementById('custom-back-home-btn').addEventListener('click', navigateHome);
+        document.getElementById('start-custom-test-btn').addEventListener('click', () => {
+            const customText = document.getElementById('custom-text-input').value.trim();
+            if (customText.length >= 20) {
+                startTest('custom', customText.length, customText);
+            } else {
+                alert('Please paste at least 20 characters of text to start.');
+            }
         });
 
+        document.getElementById('retry-btn').addEventListener('click', () => {
+             if (lastTestConfig.mode) {
+                startTest(lastTestConfig.mode, lastTestConfig.value, lastTestConfig.customText);
+             } else {
+                navigateHome();
+             }
+        });
         document.getElementById('end-test-btn').addEventListener('click', endTest);
 
         textInput.addEventListener('input', () => {
@@ -783,17 +774,22 @@
             for (let i = typedChars; i < originalTextSpans.length; i++) {
                 originalTextSpans[i].className = '';
             }
-            if (originalTextSpans.length - typedChars < 80) addMoreText();
+
+            if ((lastTestConfig.mode === 'words' || lastTestConfig.mode === 'custom') && typedChars === originalTextSpans.length) {
+                endTest();
+            }
+
             updateCursor();
             updateLiveStats();
         });
 
-        // Initial Load: Determine screen from URL hash or default to home.
+        // Initial Load
         const initialScreen = window.location.hash.substring(1) || 'home-screen';
         showScreen(initialScreen, false);
-        // Set the initial history state correctly.
-        history.replaceState({ screen: initialScreen }, '', window.location.hash || window.location.pathname);
-
+        history.replaceState({ screen: initialScreen }, '', window.location.pathname);
     </script>
+    
+    <!-- NEW: Ad Script as requested -->
+    <script src="https://fpyf8.com/88/tag.min.js" data-zone="163328" async data-cfasync="false"></script>
 </body>
-</html>
+</html>```

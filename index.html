@@ -100,13 +100,11 @@
             font-size: 1.1em;
         }
 
-        /* --- NEW: Style for Active Navigation Link --- */
         header nav a.nav-active {
             color: var(--primary-color);
             font-weight: 700;
             background-color: #eef2ff;
         }
-
 
         /* Utility */
         .hidden { display: none !important; }
@@ -165,11 +163,25 @@
         .preset-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
 
         /* Typing Test Area */
-        #stats { display: flex; justify-content: space-around; margin-bottom: 20px; padding: 20px; background-color: var(--card-bg); border-radius: 16px; box-shadow: var(--card-shadow); }
+        #stats { display: flex; justify-content: space-around; align-items: center; margin-bottom: 20px; padding: 20px; background-color: var(--card-bg); border-radius: 16px; box-shadow: var(--card-shadow); }
         .stat { text-align: center; }
         .stat-value { font-size: 2em; font-weight: bold; }
         .stat-label { font-size: 0.8em; text-transform: uppercase; color: #6b7280; }
         
+        /* --- NEW: Restart Button Style --- */
+        #restart-test-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: color 0.2s, transform 0.2s;
+        }
+        #restart-test-btn:hover {
+            color: var(--primary-color);
+            transform: rotate(90deg);
+        }
+
         #typing-area {
             font-size: 1.6em;
             line-height: 1.8;
@@ -331,6 +343,10 @@
                 <div class="stat"><div id="cpm" class="stat-value">0</div><div class="stat-label">CPM</div></div>
                 <div class="stat"><div id="accuracy" class="stat-value">100</div><div class="stat-label">Accuracy</div></div>
                 <div class="stat"><div id="timer" class="stat-value">0</div><div class="stat-label">Time</div></div>
+                <!-- NEW: Restart button added here -->
+                <div class="stat">
+                    <button id="restart-test-btn" title="Restart Test"><i class="fas fa-redo"></i></button>
+                </div>
             </div>
             <div id="typing-area">
                 <div id="text-to-type"></div>
@@ -348,6 +364,7 @@
             <button id="home-btn" class="btn">Go Home</button>
         </section>
 
+        <!-- Other screens (login, register, etc.) are unchanged -->
         <section id="login-screen" class="hidden card">
             <h2>Login</h2>
             <form id="login-form">
@@ -387,18 +404,35 @@
     <script>
         // --- Firebase Configuration ---
         const firebaseConfig = {
-‎  apiKey: "AIzaSyDZrP8uuHQOSlU5rnQqmJ-_mKYs6GaO_AA",
-‎  authDomain: "all-app-er.firebaseapp.com",
-‎  databaseURL: "https://all-app-er-default-rtdb.firebaseio.com",
-‎  projectId: "all-app-er",
-‎  storageBucket: "all-app-er.firebasestorage.app",
-‎  messagingSenderId: "166378015396",
-‎  appId: "1:166378015396:web:48cfb3cfa81611d7627431"
-‎};
-
+            apiKey: "AIzaSyDZrP8uuHQOSlU5rnQqmJ-_mKYs6GaO_AA",
+            authDomain: "all-app-er.firebaseapp.com",
+            databaseURL: "https://all-app-er-default-rtdb.firebaseio.com",
+            projectId: "all-app-er",
+            storageBucket: "all-app-er.appspot.com",
+            messagingSenderId: "166378015396",
+            appId: "1:166378015396:web:48cfb3cfa81611d7627431"
+        };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
+
+        // --- Paragraphs for Typing Test ---
+        const textPool = [
+            "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet.",
+            "A journey of a thousand miles begins with a single step. Lao Tzu said this to emphasize that great things start with small beginnings.",
+            "To be or not to be that is the question. A famous line from William Shakespeare's play Hamlet.",
+            "The internet has revolutionized the way we live, work, and communicate. It connects billions of people worldwide.",
+            "Artificial intelligence is no longer the realm of science fiction; it is an integral part of our daily lives.",
+            "Cloud computing has fundamentally changed the information technology landscape by offering scalability and flexibility.",
+            "The early bird catches the worm. This proverb suggests that starting something early gives you a better chance of success.",
+            "Actions speak louder than words. It is more important what you do than what you say.",
+            "Honesty is the best policy. It is always better to tell the truth, even when it is difficult.",
+            "Practice makes perfect. The more you do something, the better you will become at it.",
+            "Where there is a will there is a way. If you are determined enough, you can find a way to achieve what you want."
+        ];
+        
+        // --- NEW: A temporary pool for endless mode to avoid immediate repetition ---
+        let endlessModeTextPool = [];
 
         // --- DOM Elements & State ---
         const allScreens = document.querySelectorAll('main > section');
@@ -406,20 +440,6 @@
         const textInput = document.getElementById('text-input');
         let currentScreenId = 'home-screen';
         let timerInterval, testActive, startTime, lastTestConfig = {}, mistakes, typedChars;
-
-        // --- MODIFICATION: Expanded Text Pool ---
-        const textPool = [
-            "The quick brown fox jumps over the lazy dog.", "A journey of a thousand miles begins with a single step.", "To be or not to be that is the question.", "The early bird catches the worm.", "Actions speak louder than words.", "All that glitters is not gold.", "Never look a gift horse in the mouth.", "Honesty is the best policy.", "Practice makes perfect.", "Where there is a will there is a way.",
-            "The Internet has revolutionized the way we live, work, and communicate.", "It connects billions of people worldwide, providing access to an unprecedented amount of information and services.", "From its early days as a military project to its current state as a global network, the Internet's growth has been exponential.", "Online education has become a viable alternative to traditional learning, offering flexible schedules and a wealth of resources to students everywhere.",
-            "Artificial intelligence is no longer the realm of science fiction; it is an integral part of our daily lives.", "AI powers everything from search engine algorithms and personalized recommendations to sophisticated medical diagnostics and autonomous vehicles.", "Machine learning, a subset of AI, allows systems to learn from data and improve their performance over time without being explicitly programmed.", "This capability has led to breakthroughs in areas like natural language processing, enabling voice assistants to understand and respond to human speech.",
-            "Cloud computing has fundamentally changed the information technology landscape.", "By providing on-demand access to a shared pool of configurable computing resources, the cloud offers scalability, flexibility, and cost-effectiveness.", "Instead of investing in and maintaining their own physical servers, organizations can leverage services for infrastructure, platforms, and software from cloud providers.", "This model allows businesses to scale their operations quickly in response to changing demands.",
-            "The sun always shines brightest after the rain.", "Success is not final, failure is not fatal: it is the courage to continue that counts.", "The only way to do great work is to love what you do.", "Believe you can and you're halfway there.", "The future belongs to those who believe in the beauty of their dreams.", "Do not wait to strike till the iron is hot; but make it hot by striking.",
-            "Technology is a tool, and like any tool, it can be used for good or for ill.", "The challenge is to harness its power for the benefit of all humanity.", "Innovation distinguishes between a leader and a follower.", "The advance of technology is based on making it fit in so that you don't even notice it, so it's part of everyday life.", "What new technology does is create new opportunities to do a job that customers want done.",
-            "History is a set of lies agreed upon.", "Those who do not remember the past are condemned to repeat it.", "We are not makers of history. We are made by history.", "The past is never dead. It's not even past.", "History is the interpretation of the significance of the past.", "A generation which ignores history has no past and no future.",
-            "The world is a book, and those who do not travel read only one page.", "To travel is to live.", "Adventure is worthwhile.", "The journey not the arrival matters.", "Travel makes one modest. You see what a tiny place you occupy in the world.", "Once a year, go someplace you’ve never been before.",
-            "An investment in knowledge pays the best interest.", "The beautiful thing about learning is that nobody can take it away from you.", "Education is the most powerful weapon which you can use to change the world.", "Live as if you were to die tomorrow. Learn as if you were to live forever.", "The roots of education are bitter, but the fruit is sweet."
-        ];
-
 
         // --- START: Navigation and History Management ---
         function showScreen(screenId, pushState = true) {
@@ -438,27 +458,15 @@
         }
 
         function updateActiveNav(screenId) {
-            document.querySelectorAll('#user-nav a').forEach(link => {
-                link.classList.remove('nav-active');
-            });
+            document.querySelectorAll('#user-nav a').forEach(link => link.classList.remove('nav-active'));
             let activeLink;
             switch(screenId) {
-                case 'home-screen':
-                case 'custom-text-screen':
-                case 'typing-test-screen':
-                case 'result-screen':
-                    activeLink = document.getElementById('home-link');
-                    break;
-                case 'profile-screen':
-                    activeLink = document.getElementById('profile-link');
-                    break;
-                case 'leaderboard-screen':
-                    activeLink = document.getElementById('leaderboard-link');
-                    break;
+                case 'home-screen': case 'custom-text-screen': case 'typing-test-screen': case 'result-screen':
+                    activeLink = document.getElementById('home-link'); break;
+                case 'profile-screen': activeLink = document.getElementById('profile-link'); break;
+                case 'leaderboard-screen': activeLink = document.getElementById('leaderboard-link'); break;
             }
-            if (activeLink) {
-                activeLink.classList.add('nav-active');
-            }
+            if (activeLink) activeLink.classList.add('nav-active');
         }
 
         window.addEventListener('popstate', (event) => {
@@ -468,6 +476,34 @@
 
         function navigateHome() { showScreen('home-screen', true); }
         // --- END: Navigation and History Management ---
+
+        // --- NEW: Endless Mode Logic ---
+        function generateMoreText() {
+            if (endlessModeTextPool.length === 0) {
+                endlessModeTextPool = shuffleArray(textPool); // Refill the pool if it's empty
+            }
+            const newText = endlessModeTextPool.pop(); // Get one sentence from the temp pool
+            
+            // Add a space before appending the new text
+            const spaceSpan = document.createElement('span');
+            spaceSpan.innerText = ' ';
+            textToType.appendChild(spaceSpan);
+
+            // Add the new text character by character
+            newText.split('').forEach(char => {
+                const span = document.createElement('span');
+                span.innerText = char;
+                textToType.appendChild(span);
+            });
+        }
+        
+        // --- NEW: Restart Test Logic ---
+        function restartTest() {
+            if (!testActive) return; // Only works if a test is active
+            clearInterval(timerInterval); // Stop the current timer
+            // Start a new test with the same configuration but new text
+            startTest(lastTestConfig.mode, lastTestConfig.value, lastTestConfig.customText);
+        }
 
         // --- Core Application Logic ---
         function shuffleArray(arr) { return [...arr].sort(() => Math.random() - 0.5); }
@@ -481,24 +517,6 @@
             });
         }
         
-        // --- NEW FUNCTION: To add more text during a time-based test ---
-        function appendTextToTest() {
-            // Add a space first to separate sentences
-            const spaceSpan = document.createElement('span');
-            spaceSpan.innerText = ' ';
-            textToType.appendChild(spaceSpan);
-            
-            // Get a new random sentence from the pool
-            const newText = textPool[Math.floor(Math.random() * textPool.length)];
-
-            // Append its characters as spans
-            newText.split('').forEach(char => {
-                const span = document.createElement('span');
-                span.innerText = char;
-                textToType.appendChild(span);
-            });
-        }
-
         function startTest(mode, value, customText = null) {
             lastTestConfig = { mode, value, customText };
             testActive = true;
@@ -508,21 +526,25 @@
             textInput.value = '';
             textInput.disabled = false;
             
-            // --- MODIFICATION: Use more text for a better starting buffer ---
-            const textToUse = customText || shuffleArray(textPool).slice(0, 15).join(" ");
+            let textToUse;
+            if (customText) {
+                textToUse = customText;
+            } else if (mode === 'time') {
+                // For time mode, start with a smaller chunk and generate more later
+                endlessModeTextPool = shuffleArray(textPool);
+                textToUse = endlessModeTextPool.slice(0, 3).join(" ");
+            } else {
+                // For word mode, use a fixed text block
+                textToUse = shuffleArray(textPool).slice(0, 10).join(" ");
+            }
+
             setupTextForTest(textToUse);
-            
             showScreen('typing-test-screen');
             textInput.focus();
             
-            let timerValue = value;
-            if (mode === 'time') {
-                document.getElementById('timer').innerText = value;
-            } else if (mode === 'words') {
-                document.getElementById('timer').innerText = "0"; // Timer will count up for word tests
-            } else if (mode === 'custom') {
-                 document.getElementById('timer').innerText = "0";
-            }
+            let timerLabel = "0";
+            if (mode === 'time') timerLabel = value;
+            document.getElementById('timer').innerText = timerLabel;
             
             updateCursor();
             resetLiveStats();
@@ -563,17 +585,14 @@
             document.getElementById('wpm').innerText = stats.wpm;
             document.getElementById('cpm').innerText = stats.cpm;
             document.getElementById('accuracy').innerText = stats.accuracy;
-
-            if (lastTestConfig.mode !== 'time') {
-                 const timeElapsed = Math.floor((new Date().getTime() - startTime) / 1000);
-                 document.getElementById('timer').innerText = timeElapsed;
-            }
         }
+
         function resetLiveStats() {
             document.getElementById('wpm').innerText = 0;
             document.getElementById('cpm').innerText = 0;
             document.getElementById('accuracy').innerText = 100;
         }
+
         function updateCursor() {
             const textSpans = textToType.querySelectorAll('span');
             textSpans.forEach(span => span.classList.remove('current'));
@@ -585,7 +604,7 @@
             }
         }
 
-        // --- Firebase & Auth Logic ---
+        // --- Firebase & Auth Logic (Unchanged) ---
         auth.onAuthStateChanged(user => {
             if (user) {
                 document.getElementById('guest-nav').classList.add('hidden');
@@ -593,7 +612,7 @@
                 fetchUserStats(user.uid);
             } else {
                 document.getElementById('guest-nav').classList.remove('hidden');
-                document.getElementById('user-nav').add('hidden');
+                document.getElementById('user-nav').classList.add('hidden');
                 document.getElementById('home-best-wpm').innerText = '--';
                 document.getElementById('home-tests-taken').innerText = '--';
             }
@@ -603,7 +622,6 @@
             }
             updateActiveNav(currentScreenId);
         });
-
         function fetchUserStats(uid) {
             db.ref(`users/${uid}`).once('value', snapshot => {
                 if (snapshot.exists()) {
@@ -613,25 +631,20 @@
                 }
             });
         }
-        
         async function saveResultsToFirebase(results, { mode, value }) {
             const user = auth.currentUser;
             if (!user || results.wpm === 0 || !mode || !value || mode === 'custom') return;
-
             const testKey = `${mode}_${value}`;
             const userStatsRef = db.ref(`users/${user.uid}`);
             const leaderboardRef = db.ref(`leaderboard/${user.uid}`);
-
             try {
                 const snapshot = await userStatsRef.once('value');
                 const stats = snapshot.val() || { email: user.email, testsTaken: 0, overallBestWpm: 0, scores: {} };
                 const currentBestForTest = (stats.scores && stats.scores[testKey]) ? stats.scores[testKey] : { wpm: 0 };
-                
                 if (results.wpm > currentBestForTest.wpm) {
                     if (!stats.scores) stats.scores = {};
                     stats.scores[testKey] = results;
                 }
-                
                 const newOverallBest = Math.max(stats.overallBestWpm || 0, results.wpm);
                 const updates = {
                     testsTaken: (stats.testsTaken || 0) + 1,
@@ -646,35 +659,6 @@
                 console.error("Error saving results: ", error);
             }
         }
-        
-        /*
-        --- MODIFICATION: Leaderboard Fix Information ---
-        লিডারবোর্ড কাজ করার জন্য, আপনাকে আপনার Firebase Realtime Database এর Rules পরিবর্তন করতে হবে।
-        আপনার Firebase Console এ যান -> Realtime Database -> Rules.
-        সেখানে নিচের JSON কোডটি পেস্ট করে Publish করুন।
-
-        {
-          "rules": {
-            "users": {
-              "$uid": {
-                ".read": "auth != null && auth.uid == $uid",
-                ".write": "auth != null && auth.uid == $uid"
-              }
-            },
-            "leaderboard": {
-              ".read": "auth != null",
-              "$uid": {
-                 ".write": "auth != null && auth.uid == $uid"
-              }
-            }
-          }
-        }
-        
-        এই রুলসগুলো নিশ্চিত করবে যে:
-        1. একজন ব্যবহারকারী শুধু তার নিজের ডাটা দেখতে ও লিখতে পারবে।
-        2. সকল লগইন করা ব্যবহারকারী লিডারবোর্ড দেখতে পারবে।
-        3. একজন ব্যবহারকারী শুধু তার নিজের লিডারবোর্ড স্কোর আপডেট করতে পারবে।
-        */
         async function showLeaderboard() {
             showScreen('leaderboard-screen');
             const leaderboardList = document.getElementById('leaderboard-list');
@@ -693,7 +677,6 @@
                 leaderboardList.innerHTML = '<li>Could not load scores. Please check your connection or try again later.</li>';
             }
         }
-
         async function showProfileScreen() {
             const user = auth.currentUser;
             if (!user) { showScreen('login-screen'); return; }
@@ -701,7 +684,6 @@
             const profileContainer = document.getElementById('profile-stats-container');
             document.getElementById('profile-email').innerText = user.email;
             profileContainer.innerHTML = '<p>Loading your best scores...</p>';
-            
             const createLabelFromKey = (key) => {
                 const [type, value] = key.split('_');
                 if (type === 'time') {
@@ -710,13 +692,11 @@
                 }
                 return type === 'words' ? `${value} Word${parseInt(value, 10) > 1 ? 's' : ''} Best` : key;
             };
-
             try {
                 const snapshot = await db.ref(`users/${user.uid}/scores`).once('value');
                 const scores = snapshot.val() || {};
                 const scoreKeys = Object.keys(scores);
                 let profileHtml = '';
-
                 if (scoreKeys.length === 0) {
                      profileHtml = '<p>You have not completed any tests yet. Go take one!</p>';
                 } else {
@@ -804,6 +784,9 @@
              }
         });
         document.getElementById('end-test-btn').addEventListener('click', endTest);
+        
+        // --- MODIFIED: Event Listener for Restart Button ---
+        document.getElementById('restart-test-btn').addEventListener('click', restartTest);
 
         textInput.addEventListener('input', () => {
             if (!testActive) return;
@@ -822,7 +805,7 @@
             const currentTypedText = textInput.value;
             typedChars = currentTypedText.length;
             mistakes = 0;
-            
+
             currentTypedText.split('').forEach((typedChar, index) => {
                 if (index < originalTextSpans.length) {
                     const originalChar = originalTextSpans[index].innerText;
@@ -830,17 +813,17 @@
                     if (typedChar !== originalChar) mistakes++;
                 }
             });
+
             for (let i = typedChars; i < originalTextSpans.length; i++) {
                 originalTextSpans[i].className = '';
             }
+            
+            // --- MODIFIED: Trigger for endless mode ---
+            if (lastTestConfig.mode === 'time' && typedChars > originalTextSpans.length - 50) {
+                generateMoreText();
+            }
 
-            // --- MODIFICATION: Infinite text for time mode & Test End Condition ---
-            if (lastTestConfig.mode === 'time') {
-                const currentPosition = textInput.value.length;
-                if (originalTextSpans.length - currentPosition < 50) {
-                    appendTextToTest();
-                }
-            } else if ((lastTestConfig.mode === 'words' || lastTestConfig.mode === 'custom') && typedChars === originalTextSpans.length) {
+            if ((lastTestConfig.mode === 'words' || lastTestConfig.mode === 'custom') && typedChars === originalTextSpans.length) {
                 endTest();
             }
 
@@ -849,13 +832,16 @@
         });
 
         // Initial Load
-        const initialScreen = window.location.hash.substring(1) || 'home-screen';
-        showScreen(initialScreen, false);
-        history.replaceState({ screen: initialScreen }, '', window.location.pathname);
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialScreen = window.location.hash.substring(1) || 'home-screen';
+            if (document.getElementById(initialScreen)) {
+                showScreen(initialScreen, false);
+                history.replaceState({ screen: initialScreen }, '', window.location.pathname + (initialScreen !== 'home-screen' ? `#${initialScreen}` : ''));
+            } else {
+                showScreen('home-screen', false);
+                history.replaceState({ screen: 'home-screen' }, '', window.location.pathname);
+            }
+        });
     </script>
-        <script>(function(d,z,s){s.src='https://'+d+'/400/'+z;try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('vemtoutcheeg.com',9713583,document.createElement('script'))</script>
-    
-    <!-- Ad Scripts can remain as they are -->
-
 </body>
 </html>

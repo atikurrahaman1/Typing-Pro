@@ -168,7 +168,6 @@
         .stat-value { font-size: 2em; font-weight: bold; }
         .stat-label { font-size: 0.8em; text-transform: uppercase; color: #6b7280; }
         
-        /* --- NEW: Restart Button Style --- */
         #restart-test-btn {
             background: none;
             border: none;
@@ -201,11 +200,44 @@
         #text-to-type span.current { background-color: rgba(59, 130, 246, 0.2); border-radius: 3px; }
         #text-input { width: 100%; padding: 10px; font-size: 1em; border: 2px solid #d1d5db; border-radius: 8px; margin-top: 20px; font-family: inherit; }
 
-        /* Leaderboard */
+        /* --- MODIFIED: Leaderboard Styles --- */
+        .leaderboard-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .leaderboard-tabs button {
+            background-color: #f3f4f6;
+            color: #4b5563;
+            border: 1px solid #e5e7eb;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .leaderboard-tabs button:hover {
+            background-color: #e5e7eb;
+        }
+        .leaderboard-tabs button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        #leaderboard-content h3 {
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 20px;
+        }
+
         #leaderboard-list { list-style-type: none; padding: 0; }
         #leaderboard-list li { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #e5e7eb; font-size: 1.2em; }
-        #leaderboard-list li .rank { font-weight: bold; min-width: 40px; color: var(--primary-color); }
-        #leaderboard-list li .email { flex-grow: 1; color: #374151; word-break: break-all; }
+        #leaderboard-list li .rank { font-weight: bold; min-width: 40px; }
+        #leaderboard-list li .email { flex-grow: 1; color: #374151; word-break: break-all; margin: 0 15px; }
         #leaderboard-list li .wpm { font-weight: 600; }
         
         /* Profile Screen CSS */
@@ -343,7 +375,6 @@
                 <div class="stat"><div id="cpm" class="stat-value">0</div><div class="stat-label">CPM</div></div>
                 <div class="stat"><div id="accuracy" class="stat-value">100</div><div class="stat-label">Accuracy</div></div>
                 <div class="stat"><div id="timer" class="stat-value">0</div><div class="stat-label">Time</div></div>
-                <!-- NEW: Restart button added here -->
                 <div class="stat">
                     <button id="restart-test-btn" title="Restart Test"><i class="fas fa-redo"></i></button>
                 </div>
@@ -363,8 +394,7 @@
             <button id="retry-btn" class="btn btn-primary">Try Again</button>
             <button id="home-btn" class="btn">Go Home</button>
         </section>
-
-        <!-- Other screens (login, register, etc.) are unchanged -->
+        
         <section id="login-screen" class="hidden card">
             <h2>Login</h2>
             <form id="login-form">
@@ -387,10 +417,24 @@
             </form>
         </section>
 
+        <!-- MODIFIED: Leaderboard Screen HTML Structure -->
         <section id="leaderboard-screen" class="hidden card">
-            <h2>Leaderboard</h2>
-            <p>Top 10 Fastest Typists</p>
-            <ol id="leaderboard-list"></ol>
+            <h2>Leaderboards</h2>
+            <p>See who is the fastest for each test duration.</p>
+            
+            <div class="leaderboard-tabs" id="leaderboard-tabs">
+                <button class="btn-secondary" data-mode="time" data-duration="120">2 min</button>
+                <button class="btn-secondary" data-mode="time" data-duration="180">3 min</button>
+                <button class="btn-secondary" data-mode="time" data-duration="300">5 min</button>
+                <button class="btn-secondary" data-mode="time" data-duration="600">10 min</button>
+                <button class="btn-secondary" data-mode="time" data-duration="900">15 min</button>
+                <button class="btn-secondary" data-mode="time" data-duration="1200">20 min</button>
+            </div>
+
+            <div id="leaderboard-content">
+                <h3 id="leaderboard-title">Top 3 Typists</h3>
+                <ol id="leaderboard-list"></ol>
+            </div>
         </section>
 
         <section id="profile-screen" class="hidden card">
@@ -431,7 +475,6 @@
             "Where there is a will there is a way. If you are determined enough, you can find a way to achieve what you want."
         ];
         
-        // --- NEW: A temporary pool for endless mode to avoid immediate repetition ---
         let endlessModeTextPool = [];
 
         // --- DOM Elements & State ---
@@ -477,19 +520,14 @@
         function navigateHome() { showScreen('home-screen', true); }
         // --- END: Navigation and History Management ---
 
-        // --- NEW: Endless Mode Logic ---
         function generateMoreText() {
             if (endlessModeTextPool.length === 0) {
-                endlessModeTextPool = shuffleArray(textPool); // Refill the pool if it's empty
+                endlessModeTextPool = shuffleArray(textPool);
             }
-            const newText = endlessModeTextPool.pop(); // Get one sentence from the temp pool
-            
-            // Add a space before appending the new text
+            const newText = endlessModeTextPool.pop();
             const spaceSpan = document.createElement('span');
             spaceSpan.innerText = ' ';
             textToType.appendChild(spaceSpan);
-
-            // Add the new text character by character
             newText.split('').forEach(char => {
                 const span = document.createElement('span');
                 span.innerText = char;
@@ -497,15 +535,12 @@
             });
         }
         
-        // --- NEW: Restart Test Logic ---
         function restartTest() {
-            if (!testActive) return; // Only works if a test is active
-            clearInterval(timerInterval); // Stop the current timer
-            // Start a new test with the same configuration but new text
+            if (!testActive) return;
+            clearInterval(timerInterval);
             startTest(lastTestConfig.mode, lastTestConfig.value, lastTestConfig.customText);
         }
 
-        // --- Core Application Logic ---
         function shuffleArray(arr) { return [...arr].sort(() => Math.random() - 0.5); }
         
         function setupTextForTest(text) {
@@ -530,11 +565,9 @@
             if (customText) {
                 textToUse = customText;
             } else if (mode === 'time') {
-                // For time mode, start with a smaller chunk and generate more later
                 endlessModeTextPool = shuffleArray(textPool);
                 textToUse = endlessModeTextPool.slice(0, 3).join(" ");
             } else {
-                // For word mode, use a fixed text block
                 textToUse = shuffleArray(textPool).slice(0, 10).join(" ");
             }
 
@@ -604,7 +637,7 @@
             }
         }
 
-        // --- Firebase & Auth Logic (Unchanged) ---
+        // --- Firebase & Auth Logic ---
         auth.onAuthStateChanged(user => {
             if (user) {
                 document.getElementById('guest-nav').classList.add('hidden');
@@ -622,6 +655,7 @@
             }
             updateActiveNav(currentScreenId);
         });
+
         function fetchUserStats(uid) {
             db.ref(`users/${uid}`).once('value', snapshot => {
                 if (snapshot.exists()) {
@@ -631,20 +665,29 @@
                 }
             });
         }
+        
+        // --- MODIFIED: saveResultsToFirebase to support new leaderboards ---
         async function saveResultsToFirebase(results, { mode, value }) {
             const user = auth.currentUser;
             if (!user || results.wpm === 0 || !mode || !value || mode === 'custom') return;
+
             const testKey = `${mode}_${value}`;
             const userStatsRef = db.ref(`users/${user.uid}`);
-            const leaderboardRef = db.ref(`leaderboard/${user.uid}`);
+            
+            // NEW: Path for the new test-specific leaderboard
+            const testLeaderboardRef = db.ref(`testLeaderboards/${testKey}/${user.uid}`);
+
             try {
+                // Update user's personal stats
                 const snapshot = await userStatsRef.once('value');
                 const stats = snapshot.val() || { email: user.email, testsTaken: 0, overallBestWpm: 0, scores: {} };
                 const currentBestForTest = (stats.scores && stats.scores[testKey]) ? stats.scores[testKey] : { wpm: 0 };
+                
                 if (results.wpm > currentBestForTest.wpm) {
                     if (!stats.scores) stats.scores = {};
                     stats.scores[testKey] = results;
                 }
+                
                 const newOverallBest = Math.max(stats.overallBestWpm || 0, results.wpm);
                 const updates = {
                     testsTaken: (stats.testsTaken || 0) + 1,
@@ -653,30 +696,67 @@
                     email: user.email
                 };
                 await userStatsRef.update(updates);
-                await leaderboardRef.set({ email: user.email, wpm: newOverallBest });
+                
+                // NEW: Update the new test-specific leaderboard if score is higher
+                const existingLeaderboardScoreSnapshot = await testLeaderboardRef.once('value');
+                const existingWpm = existingLeaderboardScoreSnapshot.val() ? existingLeaderboardScoreSnapshot.val().wpm : 0;
+                
+                if (results.wpm > existingWpm) {
+                    await testLeaderboardRef.set({
+                        email: user.email,
+                        wpm: results.wpm,
+                        accuracy: results.accuracy
+                    });
+                }
+                
                 fetchUserStats(user.uid);
             } catch (error) {
                 console.error("Error saving results: ", error);
             }
         }
-        async function showLeaderboard() {
+        
+        // --- MODIFIED: Leaderboard Display Logic ---
+        function showLeaderboardScreen() {
             showScreen('leaderboard-screen');
+            // Automatically click the first tab (2 min) when the screen loads
+            document.querySelector('#leaderboard-tabs button').click();
+        }
+
+        async function displayLeaderboardForTest(mode, duration) {
+            const testKey = `${mode}_${duration}`;
             const leaderboardList = document.getElementById('leaderboard-list');
+            const leaderboardTitle = document.getElementById('leaderboard-title');
+            
+            const minutes = duration / 60;
+            leaderboardTitle.innerText = `Top 3 Typists for ${minutes} Minute Test`;
             leaderboardList.innerHTML = '<li>Loading...</li>';
+
             try {
-                const snapshot = await db.ref('leaderboard').orderByChild('wpm').limitToLast(10).once('value');
+                const leaderboardRef = db.ref(`testLeaderboards/${testKey}`);
+                const snapshot = await leaderboardRef.orderByChild('wpm').limitToLast(3).once('value');
+                
                 if (snapshot.exists()) {
                     const scores = [];
                     snapshot.forEach(child => scores.push(child.val()));
+                    
+                    const medals = ['🥇', '🥈', '🥉'];
+
                     leaderboardList.innerHTML = scores.reverse().map((score, index) =>
-                        `<li><span class="rank">${index + 1}</span><span class="email">${score.email}</span><span class="wpm">${score.wpm} WPM</span></li>`
+                        `<li>
+                            <span class="rank">${medals[index] || index + 1}</span>
+                            <span class="email">${score.email}</span>
+                            <span class="wpm">${score.wpm} WPM</span>
+                        </li>`
                     ).join('');
-                } else { leaderboardList.innerHTML = '<li>No scores yet. Be the first!</li>'; }
+                } else { 
+                    leaderboardList.innerHTML = '<li>No scores yet for this category. Be the first!</li>'; 
+                }
             } catch (error) {
-                console.error("Failed to load leaderboard:", error);
-                leaderboardList.innerHTML = '<li>Could not load scores. Please check your connection or try again later.</li>';
+                console.error(`Failed to load leaderboard for ${testKey}:`, error);
+                leaderboardList.innerHTML = '<li>Could not load scores. Please try again later.</li>';
             }
         }
+
         async function showProfileScreen() {
             const user = auth.currentUser;
             if (!user) { showScreen('login-screen'); return; }
@@ -733,7 +813,7 @@
         document.querySelector('.logo-container').addEventListener('click', (e) => { preventDefault(e); navigateHome(); });
         document.getElementById('login-nav-btn').addEventListener('click', (e) => { preventDefault(e); showScreen('login-screen'); });
         document.getElementById('register-nav-btn').addEventListener('click', (e) => { preventDefault(e); showScreen('register-screen'); });
-        document.getElementById('leaderboard-link').addEventListener('click', (e) => { preventDefault(e); showLeaderboard(); });
+        document.getElementById('leaderboard-link').addEventListener('click', (e) => { preventDefault(e); showLeaderboardScreen(); }); // MODIFIED
         document.getElementById('logout-btn').addEventListener('click', (e) => { preventDefault(e); auth.signOut().then(navigateHome); });
         document.getElementById('home-link').addEventListener('click', (e) => { preventDefault(e); navigateHome(); });
         document.getElementById('home-btn').addEventListener('click', (e) => { preventDefault(e); navigateHome(); });
@@ -741,7 +821,6 @@
         document.getElementById('profile-back-home-btn').addEventListener('click', (e) => { preventDefault(e); navigateHome(); });
         document.getElementById('go-to-register').addEventListener('click', (e) => { preventDefault(e); showScreen('register-screen'); });
         document.getElementById('go-to-login').addEventListener('click', (e) => { preventDefault(e); showScreen('login-screen'); });
-
         document.getElementById('login-form').addEventListener('submit', (e) => {
             preventDefault(e);
             const errEl = document.getElementById('login-error');
@@ -758,13 +837,11 @@
                 .then(() => navigateHome())
                 .catch(err => { errEl.innerText = err.message; errEl.classList.remove('hidden'); });
         });
-        
         document.getElementById('quick-start-buttons').addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON' && e.target.dataset.mode) {
                 startTest(e.target.dataset.mode, parseInt(e.target.dataset.duration || e.target.dataset.count, 10));
             }
         });
-
         document.getElementById('custom-text-btn').addEventListener('click', () => showScreen('custom-text-screen'));
         document.getElementById('custom-back-home-btn').addEventListener('click', navigateHome);
         document.getElementById('start-custom-test-btn').addEventListener('click', () => {
@@ -775,7 +852,6 @@
                 alert('Please paste at least 20 characters of text to start.');
             }
         });
-
         document.getElementById('retry-btn').addEventListener('click', () => {
              if (lastTestConfig.mode) {
                 startTest(lastTestConfig.mode, lastTestConfig.value, lastTestConfig.customText);
@@ -784,9 +860,18 @@
              }
         });
         document.getElementById('end-test-btn').addEventListener('click', endTest);
-        
-        // --- MODIFIED: Event Listener for Restart Button ---
         document.getElementById('restart-test-btn').addEventListener('click', restartTest);
+        
+        // NEW: Event Listener for Leaderboard Tabs
+        document.getElementById('leaderboard-tabs').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('#leaderboard-tabs button').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                const mode = e.target.dataset.mode;
+                const duration = parseInt(e.target.dataset.duration, 10);
+                displayLeaderboardForTest(mode, duration);
+            }
+        });
 
         textInput.addEventListener('input', () => {
             if (!testActive) return;
@@ -805,7 +890,6 @@
             const currentTypedText = textInput.value;
             typedChars = currentTypedText.length;
             mistakes = 0;
-
             currentTypedText.split('').forEach((typedChar, index) => {
                 if (index < originalTextSpans.length) {
                     const originalChar = originalTextSpans[index].innerText;
@@ -813,20 +897,15 @@
                     if (typedChar !== originalChar) mistakes++;
                 }
             });
-
             for (let i = typedChars; i < originalTextSpans.length; i++) {
                 originalTextSpans[i].className = '';
             }
-            
-            // --- MODIFIED: Trigger for endless mode ---
             if (lastTestConfig.mode === 'time' && typedChars > originalTextSpans.length - 50) {
                 generateMoreText();
             }
-
             if ((lastTestConfig.mode === 'words' || lastTestConfig.mode === 'custom') && typedChars === originalTextSpans.length) {
                 endTest();
             }
-
             updateCursor();
             updateLiveStats();
         });

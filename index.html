@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Typing Test Pro - Advanced</title>
 
-    <!-- Google Fonts for better typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
@@ -138,6 +135,18 @@
         .btn-secondary:hover {
              background-color: #dbeafe;
         }
+        
+        /* Select */
+        #time-test-dropdown {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%233b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+            cursor: pointer;
+        }
 
         /* Card Styles */
         .card {
@@ -200,7 +209,7 @@
         #text-to-type span.current { background-color: rgba(59, 130, 246, 0.2); border-radius: 3px; }
         #text-input { width: 100%; padding: 10px; font-size: 1em; border: 2px solid #d1d5db; border-radius: 8px; margin-top: 20px; font-family: inherit; }
 
-        /* --- MODIFIED: Leaderboard Styles --- */
+        /* Leaderboard Styles */
         .leaderboard-tabs {
             display: flex;
             flex-wrap: wrap;
@@ -306,7 +315,6 @@
     </header>
 
     <main class="container">
-        <!-- Screens -->
         <section id="home-screen" class="card">
              <h1>Master Your Keystrokes</h1>
              <p>Select a test below or use your own text to practice.</p>
@@ -331,22 +339,20 @@
                 </div>
                 <div id="quick-start-buttons">
                     <div class="preset-group">
-                        <h4>Seconds</h4>
+                        <h4>Time Tests</h4>
                         <div class="preset-buttons">
-                            <button class="btn btn-secondary" data-mode="time" data-duration="15">15s</button>
-                            <button class="btn btn-secondary" data-mode="time" data-duration="30">30s</button>
-                            <button class="btn btn-secondary" data-mode="time" data-duration="60">60s</button>
-                        </div>
-                    </div>
-                     <div class="preset-group">
-                        <h4>Minutes</h4>
-                        <div class="preset-buttons">
-                            <button class="btn btn-secondary" data-mode="time" data-duration="120">2 min</button>
-                            <button class="btn btn-secondary" data-mode="time" data-duration="180">3 min</button>
-                            <button class="btn btn-secondary" data-mode="time" data-duration="300">5 min</button>
-                            <button class="btn btn-secondary" data-mode="time" data-duration="600">10 min</button>
-                            <button class="btn btn-secondary" data-mode="time" data-duration="900">15 min</button>
-                            <button class="btn btn-secondary" data-mode="time" data-duration="1200">20 min</button>
+                            <select id="time-test-dropdown" class="btn btn-secondary" style="width: auto;">
+                                <option value="" disabled selected>Select a duration...</option>
+                                <option value="15">15 Seconds</option>
+                                <option value="30">30 Seconds</option>
+                                <option value="60">1 Minute</option>
+                                <option value="120">2 Minutes</option>
+                                <option value="180">3 Minutes</option>
+                                <option value="300">5 Minutes</option>
+                                <option value="600">10 Minutes</option>
+                                <option value="900">15 Minutes</option>
+                                <option value="1200">20 Minutes</option>
+                            </select>
                         </div>
                     </div>
                     <div class="preset-group">
@@ -417,12 +423,14 @@
             </form>
         </section>
 
-        <!-- MODIFIED: Leaderboard Screen HTML Structure -->
         <section id="leaderboard-screen" class="hidden card">
             <h2>Leaderboards</h2>
             <p>See who is the fastest for each test duration.</p>
             
             <div class="leaderboard-tabs" id="leaderboard-tabs">
+                <button class="btn-secondary" data-mode="time" data-duration="15">15s</button>
+                <button class="btn-secondary" data-mode="time" data-duration="30">30s</button>
+                <button class="btn-secondary" data-mode="time" data-duration="60">1 min</button>
                 <button class="btn-secondary" data-mode="time" data-duration="120">2 min</button>
                 <button class="btn-secondary" data-mode="time" data-duration="180">3 min</button>
                 <button class="btn-secondary" data-mode="time" data-duration="300">5 min</button>
@@ -666,7 +674,6 @@
             });
         }
         
-        // --- MODIFIED: saveResultsToFirebase to support new leaderboards ---
         async function saveResultsToFirebase(results, { mode, value }) {
             const user = auth.currentUser;
             if (!user || results.wpm === 0 || !mode || !value || mode === 'custom') return;
@@ -674,9 +681,6 @@
             const testKey = `${mode}_${value}`;
             const userStatsRef = db.ref(`users/${user.uid}`);
             
-            // NEW: Path for the new test-specific leaderboard
-            const testLeaderboardRef = db.ref(`testLeaderboards/${testKey}/${user.uid}`);
-
             try {
                 // Update user's personal stats
                 const snapshot = await userStatsRef.once('value');
@@ -697,17 +701,13 @@
                 };
                 await userStatsRef.update(updates);
                 
-                // NEW: Update the new test-specific leaderboard if score is higher
-                const existingLeaderboardScoreSnapshot = await testLeaderboardRef.once('value');
-                const existingWpm = existingLeaderboardScoreSnapshot.val() ? existingLeaderboardScoreSnapshot.val().wpm : 0;
-                
-                if (results.wpm > existingWpm) {
-                    await testLeaderboardRef.set({
-                        email: user.email,
-                        wpm: results.wpm,
-                        accuracy: results.accuracy
-                    });
-                }
+                // Update the test-specific leaderboard with a new entry
+                await db.ref(`testLeaderboards/${testKey}`).push({
+                    email: user.email,
+                    wpm: results.wpm,
+                    accuracy: results.accuracy,
+                    userId: user.uid
+                });
                 
                 fetchUserStats(user.uid);
             } catch (error) {
@@ -715,10 +715,10 @@
             }
         }
         
-        // --- MODIFIED: Leaderboard Display Logic ---
+        // --- Leaderboard Display Logic ---
         function showLeaderboardScreen() {
             showScreen('leaderboard-screen');
-            // Automatically click the first tab (2 min) when the screen loads
+            // Automatically click the first tab (15s) when the screen loads
             document.querySelector('#leaderboard-tabs button').click();
         }
 
@@ -727,21 +727,34 @@
             const leaderboardList = document.getElementById('leaderboard-list');
             const leaderboardTitle = document.getElementById('leaderboard-title');
             
-            const minutes = duration / 60;
-            leaderboardTitle.innerText = `Top 3 Typists for ${minutes} Minute Test`;
+            let titleText;
+            if (duration < 60) {
+                titleText = `Top 3 Typists for ${duration} Second Test`;
+            } else {
+                const minutes = duration / 60;
+                titleText = `Top 3 Typists for ${minutes} Minute Test`;
+            }
+            leaderboardTitle.innerText = titleText;
             leaderboardList.innerHTML = '<li>Loading...</li>';
 
             try {
                 const leaderboardRef = db.ref(`testLeaderboards/${testKey}`);
-                const snapshot = await leaderboardRef.orderByChild('wpm').limitToLast(3).once('value');
+                const snapshot = await leaderboardRef.orderByChild('wpm').limitToLast(100).once('value');
                 
                 if (snapshot.exists()) {
-                    const scores = [];
-                    snapshot.forEach(child => scores.push(child.val()));
+                    const scoresMap = {};
+                    snapshot.forEach(child => {
+                        const score = child.val();
+                        if (!scoresMap[score.userId] || score.wpm > scoresMap[score.userId].wpm) {
+                            scoresMap[score.userId] = score;
+                        }
+                    });
+
+                    const sortedScores = Object.values(scoresMap).sort((a, b) => b.wpm - a.wpm).slice(0, 3);
                     
                     const medals = ['🥇', '🥈', '🥉'];
 
-                    leaderboardList.innerHTML = scores.reverse().map((score, index) =>
+                    leaderboardList.innerHTML = sortedScores.map((score, index) =>
                         `<li>
                             <span class="rank">${medals[index] || index + 1}</span>
                             <span class="email">${score.email}</span>
@@ -813,7 +826,7 @@
         document.querySelector('.logo-container').addEventListener('click', (e) => { preventDefault(e); navigateHome(); });
         document.getElementById('login-nav-btn').addEventListener('click', (e) => { preventDefault(e); showScreen('login-screen'); });
         document.getElementById('register-nav-btn').addEventListener('click', (e) => { preventDefault(e); showScreen('register-screen'); });
-        document.getElementById('leaderboard-link').addEventListener('click', (e) => { preventDefault(e); showLeaderboardScreen(); }); // MODIFIED
+        document.getElementById('leaderboard-link').addEventListener('click', (e) => { preventDefault(e); showLeaderboardScreen(); });
         document.getElementById('logout-btn').addEventListener('click', (e) => { preventDefault(e); auth.signOut().then(navigateHome); });
         document.getElementById('home-link').addEventListener('click', (e) => { preventDefault(e); navigateHome(); });
         document.getElementById('home-btn').addEventListener('click', (e) => { preventDefault(e); navigateHome(); });
@@ -842,6 +855,12 @@
                 startTest(e.target.dataset.mode, parseInt(e.target.dataset.duration || e.target.dataset.count, 10));
             }
         });
+        document.getElementById('time-test-dropdown').addEventListener('change', (e) => {
+            const duration = parseInt(e.target.value, 10);
+            if (!isNaN(duration)) {
+                startTest('time', duration);
+            }
+        });
         document.getElementById('custom-text-btn').addEventListener('click', () => showScreen('custom-text-screen'));
         document.getElementById('custom-back-home-btn').addEventListener('click', navigateHome);
         document.getElementById('start-custom-test-btn').addEventListener('click', () => {
@@ -862,7 +881,6 @@
         document.getElementById('end-test-btn').addEventListener('click', endTest);
         document.getElementById('restart-test-btn').addEventListener('click', restartTest);
         
-        // NEW: Event Listener for Leaderboard Tabs
         document.getElementById('leaderboard-tabs').addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') {
                 document.querySelectorAll('#leaderboard-tabs button').forEach(btn => btn.classList.remove('active'));

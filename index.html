@@ -1602,9 +1602,9 @@
         
         function generateMoreText() {
             if (endlessModeTextPool.length === 0) {
-                endlessModeTextPool = shuffleArray(textPool);
+                endlessModeTextPool = shuffleArray([...textPool]);
             }
-            const newText = endlessModeTextPool.pop();
+            const newText = endlessModeTextPool.shift();
             const spaceSpan = document.createElement('span');
             spaceSpan.innerText = ' ';
             textToType.appendChild(spaceSpan);
@@ -1646,10 +1646,12 @@
             if (customText) {
                 textToUse = customText;
             } else if (mode === 'time') {
-                endlessModeTextPool = shuffleArray(textPool);
-                textToUse = endlessModeTextPool.slice(0, 3).join(" ");
-            } else {
-                textToUse = shuffleArray(textPool).slice(0, 10).join(" ");
+                endlessModeTextPool = shuffleArray([...textPool]);
+                textToUse = endlessModeTextPool.shift();
+            } else if (mode === 'words') {
+                const allWords = textPool.join(' ').split(/\s+/).filter(Boolean);
+                const shuffledWords = shuffleArray(allWords);
+                textToUse = shuffledWords.slice(0, value).join(' ');
             }
             setupTextForTest(textToUse);
             showScreen('typing-test-screen');
@@ -2134,6 +2136,31 @@
             }
         });
         
+        textInput.addEventListener('keydown', (e) => {
+            if (!testActive) return;
+
+            const typedChar = e.key;
+            const originalTextSpans = textToType.querySelectorAll('span');
+            const currentPos = textInput.value.length;
+            
+            // For heatmap, we track keydown events
+            if (typedChar.length === 1 || typedChar === ' ') {
+                const originalChar = originalTextSpans[currentPos] ? originalTextSpans[currentPos].innerText : null;
+                const isCorrect = originalChar && typedChar === originalChar;
+                
+                const key = typedChar.toLowerCase();
+                if (!currentTestKeyStats[key]) {
+                    currentTestKeyStats[key] = { correct: 0, incorrect: 0, total: 0 };
+                }
+                currentTestKeyStats[key].total++;
+                if (isCorrect) {
+                    currentTestKeyStats[key].correct++;
+                } else {
+                    currentTestKeyStats[key].incorrect++;
+                }
+            }
+        });
+        
         textInput.addEventListener('input', () => {
             if (!testActive) return;
             
@@ -2154,30 +2181,18 @@
             typedChars = currentTypedText.length;
             mistakes = 0;
             
-            currentTypedText.split('').forEach((typedChar, index) => {
-                if (index < originalTextSpans.length) {
-                    const originalChar = originalTextSpans[index].innerText;
-                    originalTextSpans[index].className = (typedChar === originalChar) ? 'correct' : 'incorrect';
-                    if (typedChar !== originalChar) mistakes++;
-                    
-                    // Track key statistics for heatmap
-                    const key = typedChar.toLowerCase();
-                    if (!currentTestKeyStats[key]) {
-                        currentTestKeyStats[key] = {
-                            correct: 0,
-                            incorrect: 0,
-                            total: 0
-                        };
-                    }
-                    
-                    currentTestKeyStats[key].total++;
-                    if (typedChar === originalChar) {
-                        currentTestKeyStats[key].correct++;
-                    } else {
-                        currentTestKeyStats[key].incorrect++;
-                    }
+            for (let i = 0; i < currentTypedText.length; i++) {
+                if (i >= originalTextSpans.length) break;
+                const typedChar = currentTypedText[i];
+                const originalChar = originalTextSpans[i].innerText;
+                
+                if (typedChar !== originalChar) {
+                    mistakes++;
+                    originalTextSpans[i].className = 'incorrect';
+                } else {
+                    originalTextSpans[i].className = 'correct';
                 }
-            });
+            }
             
             for (let i = typedChars; i < originalTextSpans.length; i++) {
                 originalTextSpans[i].className = '';
@@ -2209,3 +2224,4 @@
     </script>
 </body>
 </html>
+

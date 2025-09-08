@@ -643,6 +643,7 @@
             font-weight: 500;
             transition: all 0.3s ease;
             transform-style: preserve-3d;
+            user-select: none; /* Prevent text selection */
         }
         
         body.dark-mode .leaderboard-tabs button {
@@ -743,6 +744,27 @@
             flex-direction: column; 
             gap: 25px; 
             margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        #profile-stats-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #profile-stats-container::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+        
+        #profile-stats-container::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+        
+        #profile-stats-container::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-hover);
         }
         
         .profile-test-record { 
@@ -754,6 +776,7 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         
         body.dark-mode .profile-test-record {
@@ -2091,13 +2114,9 @@
             }
         });
         
+        // Fix for time dropdown on click
         timeTestDropdown.addEventListener('click', (e) => {
-            if (e.target.tagName === 'OPTION') {
-                const duration = parseInt(e.target.value, 10);
-                if (!isNaN(duration)) {
-                    startTest('time', duration);
-                }
-            }
+            e.stopPropagation();
         });
         
         document.getElementById('custom-text-btn').addEventListener('click', () => showScreen('custom-text-screen'));
@@ -2138,7 +2157,6 @@
         
         textInput.addEventListener('keydown', (e) => {
             if (!testActive) return;
-
             const typedChar = e.key;
             const originalTextSpans = textToType.querySelectorAll('span');
             const currentPos = textInput.value.length;
@@ -2224,4 +2242,3 @@
     </script>
 </body>
 </html>
-

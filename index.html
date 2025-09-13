@@ -770,11 +770,39 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+        }
+        
+        .loading-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .loading-video {
+            width: 300px;
+            height: 300px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .loading-video video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .loading-text {
+            color: #ffffff;
+            font-size: 1.2em;
+            margin-top: 10px;
         }
         
         .spinner {
@@ -784,6 +812,7 @@
             border-radius: 50%;
             border-left-color: var(--primary-color);
             animation: spin 1s ease infinite;
+            display: none; /* Hide spinner since we're using video */
         }
         
         @keyframes spin {
@@ -1098,13 +1127,17 @@
             .key.space {
                 width: 200px;
             }
+            .loading-video {
+                width: 200px;
+                height: 200px;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Background Video -->
     <div class="video-background">
-        <video autoplay muted loop playsinline>
+        <video autoplay muted loop playsinline preload="metadata">
             <source src="backto.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
@@ -1410,9 +1443,33 @@
             <button id="profile-back-home-btn" class="btn btn-secondary">Go Home</button>
         </section>
     </main>
+    
+    <!-- Loading Overlay with Video -->
     <div id="loading-overlay" class="loading-overlay hidden">
-        <div class="spinner"></div>
+        <div class="loading-content">
+            <div class="loading-video">
+                <video id="loading-video-element" autoplay muted loop playsinline>
+                    <source src="see.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="loading-text" id="loading-text">Loading...</div>
+        </div>
     </div>
+    
+    <!-- Auth Loading Overlay with Video -->
+    <div id="auth-loading-overlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="loading-video">
+                <video id="auth-loading-video-element" autoplay muted loop playsinline>
+                    <source src="logon.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="loading-text" id="auth-loading-text">Authenticating...</div>
+        </div>
+    </div>
+    
     <button id="dark-mode-toggle" class="dark-mode-toggle">
         <i class="fas fa-moon"></i>
     </button>
@@ -1465,14 +1522,52 @@
         const textToType = document.getElementById('text-to-type');
         const textInput = document.getElementById('text-input');
         const loadingOverlay = document.getElementById('loading-overlay');
+        const authLoadingOverlay = document.getElementById('auth-loading-overlay');
         const timeTestDropdown = document.getElementById('time-test-dropdown');
         const darkModeToggle = document.getElementById('dark-mode-toggle');
         const logoutConfirmation = document.getElementById('logout-confirmation');
+        const loadingText = document.getElementById('loading-text');
+        const authLoadingText = document.getElementById('auth-loading-text');
         let currentScreenId = 'home-screen';
         let timerInterval, testActive, startTime, lastTestConfig = {}, mistakes, typedChars;
         let keyStats = {}; // Object to store key statistics for heatmap
         let currentTestKeyStats = {}; // Key stats for current test
         let trendChart = null; // Chart.js instance for trend analysis
+        
+        // Optimize video loading
+        function optimizeVideoLoading() {
+            const backgroundVideo = document.querySelector('.video-background video');
+            
+            // Set preload to metadata for faster loading
+            backgroundVideo.setAttribute('preload', 'metadata');
+            
+            // Load video with higher priority
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(() => {
+                    backgroundVideo.load();
+                });
+            } else {
+                // Fallback for browsers that don't support requestIdleCallback
+                setTimeout(() => {
+                    backgroundVideo.load();
+                }, 100);
+            }
+        }
+        
+        // Initialize video optimization
+        document.addEventListener('DOMContentLoaded', () => {
+            optimizeVideoLoading();
+            
+            // Set up video event listeners
+            const backgroundVideo = document.querySelector('.video-background video');
+            backgroundVideo.addEventListener('loadeddata', () => {
+                console.log('Background video loaded successfully');
+            });
+            
+            backgroundVideo.addEventListener('error', (e) => {
+                console.error('Error loading background video:', e);
+            });
+        });
         
         // --- START: Navigation and History Management ---
         function showScreen(screenId, pushState = true) {
@@ -1512,8 +1607,35 @@
         function navigateHome() { showScreen('home-screen', true); }
         // --- END: Navigation and History Management ---
         
-        function showLoading() { loadingOverlay.classList.remove('hidden'); }
-        function hideLoading() { loadingOverlay.classList.add('hidden'); }
+        function showLoading(text = "Loading...") {
+            loadingText.textContent = text;
+            loadingOverlay.classList.remove('hidden');
+            
+            // Ensure video is playing
+            const loadingVideo = document.getElementById('loading-video-element');
+            if (loadingVideo) {
+                loadingVideo.play().catch(e => console.log("Video play failed:", e));
+            }
+        }
+        
+        function hideLoading() {
+            loadingOverlay.classList.add('hidden');
+        }
+        
+        function showAuthLoading(text = "Authenticating...") {
+            authLoadingText.textContent = text;
+            authLoadingOverlay.classList.remove('hidden');
+            
+            // Ensure video is playing
+            const authLoadingVideo = document.getElementById('auth-loading-video-element');
+            if (authLoadingVideo) {
+                authLoadingVideo.play().catch(e => console.log("Auth video play failed:", e));
+            }
+        }
+        
+        function hideAuthLoading() {
+            authLoadingOverlay.classList.add('hidden');
+        }
         
         function generateMoreText() {
             if (endlessModeTextPool.length === 0) {
@@ -1781,11 +1903,15 @@
         }
         
         function showLeaderboardScreen() {
-            showScreen('leaderboard-screen');
-            const firstButton = document.querySelector('#leaderboard-tabs button');
-            if (firstButton) {
-                firstButton.click();
-            }
+            showLoading("Loading leaderboard...");
+            setTimeout(() => {
+                showScreen('leaderboard-screen');
+                const firstButton = document.querySelector('#leaderboard-tabs button');
+                if (firstButton) {
+                    firstButton.click();
+                }
+                hideLoading();
+            }, 500);
         }
         
         async function displayLeaderboardForTest(mode, duration) {
@@ -1834,52 +1960,57 @@
         async function showProfileScreen() {
             const user = auth.currentUser;
             if (!user) { showScreen('login-screen'); return; }
-            showScreen('profile-screen');
-            const profileContainer = document.getElementById('profile-stats-container');
-            document.getElementById('profile-email').innerText = user.email;
-            profileContainer.innerHTML = '<p>Loading your best scores...</p>';
-            const createLabelFromKey = (key) => {
-                const [type, value] = key.split('_');
-                if (type === 'time') {
-                    const seconds = parseInt(value, 10);
-                    return seconds >= 60 ? `${seconds / 60} Minute${seconds > 60 ? 's' : ''} Best` : `${seconds} Second${seconds > 1 ? 's' : ''} Best`;
+            
+            showLoading("Loading profile...");
+            setTimeout(async () => {
+                showScreen('profile-screen');
+                const profileContainer = document.getElementById('profile-stats-container');
+                document.getElementById('profile-email').innerText = user.email;
+                profileContainer.innerHTML = '<p>Loading your best scores...</p>';
+                const createLabelFromKey = (key) => {
+                    const [type, value] = key.split('_');
+                    if (type === 'time') {
+                        const seconds = parseInt(value, 10);
+                        return seconds >= 60 ? `${seconds / 60} Minute${seconds > 60 ? 's' : ''} Best` : `${seconds} Second${seconds > 1 ? 's' : ''} Best`;
+                    }
+                    return type === 'words' ? `${value} Word${parseInt(value, 10) > 1 ? 's' : ''} Best` : key;
+                };
+                try {
+                    const snapshot = await db.ref(`users/${user.uid}/scores`).once('value');
+                    const scores = snapshot.val() || {};
+                    const scoreKeys = Object.keys(scores);
+                    let profileHtml = '';
+                    if (scoreKeys.length === 0) {
+                         profileHtml = '<p>You have not completed any tests yet. Go take one!</p>';
+                    } else {
+                        scoreKeys.sort((a, b) => {
+                            const [typeA, valA] = a.split('_');
+                            const [typeB, valB] = b.split('_');
+                            if (typeA !== typeB) return typeA.localeCompare(typeB);
+                            return parseInt(valA, 10) - parseInt(valB, 10);
+                        }).forEach(key => {
+                            const scoreData = scores[key];
+                            if (scoreData) {
+                                profileHtml += `
+                                    <div class="profile-test-record">
+                                        <h3>${createLabelFromKey(key)}</h3>
+                                        <div class="stats-grid">
+                                            <div><span class="stat-value">${scoreData.wpm}</span><span class="stat-label">WPM</span></div>
+                                            <div><span class="stat-value">${scoreData.cpm}</span><span class="stat-label">CPM</span></div>
+                                            <div><span class="stat-value">${scoreData.accuracy}%</span><span class="stat-label">Accuracy</span></div>
+                                            <div><span class="stat-value">${scoreData.mistakes}</span><span class="stat-label">Mistakes</span></div>
+                                        </div>
+                                    </div>`;
+                            }
+                        });
+                    }
+                    profileContainer.innerHTML = profileHtml || '<p>You have not completed any tests yet. Go take one!</p>';
+                } catch (error) {
+                    console.error("Could not load profile stats:", error);
+                    profileContainer.innerHTML = '<p>Could not load your stats. Please try again.</p>';
                 }
-                return type === 'words' ? `${value} Word${parseInt(value, 10) > 1 ? 's' : ''} Best` : key;
-            };
-            try {
-                const snapshot = await db.ref(`users/${user.uid}/scores`).once('value');
-                const scores = snapshot.val() || {};
-                const scoreKeys = Object.keys(scores);
-                let profileHtml = '';
-                if (scoreKeys.length === 0) {
-                     profileHtml = '<p>You have not completed any tests yet. Go take one!</p>';
-                } else {
-                    scoreKeys.sort((a, b) => {
-                        const [typeA, valA] = a.split('_');
-                        const [typeB, valB] = b.split('_');
-                        if (typeA !== typeB) return typeA.localeCompare(typeB);
-                        return parseInt(valA, 10) - parseInt(valB, 10);
-                    }).forEach(key => {
-                        const scoreData = scores[key];
-                        if (scoreData) {
-                            profileHtml += `
-                                <div class="profile-test-record">
-                                    <h3>${createLabelFromKey(key)}</h3>
-                                    <div class="stats-grid">
-                                        <div><span class="stat-value">${scoreData.wpm}</span><span class="stat-label">WPM</span></div>
-                                        <div><span class="stat-value">${scoreData.cpm}</span><span class="stat-label">CPM</span></div>
-                                        <div><span class="stat-value">${scoreData.accuracy}%</span><span class="stat-label">Accuracy</span></div>
-                                        <div><span class="stat-value">${scoreData.mistakes}</span><span class="stat-label">Mistakes</span></div>
-                                    </div>
-                                </div>`;
-                        }
-                    });
-                }
-                profileContainer.innerHTML = profileHtml || '<p>You have not completed any tests yet. Go take one!</p>';
-            } catch (error) {
-                console.error("Could not load profile stats:", error);
-                profileContainer.innerHTML = '<p>Could not load your stats. Please try again.</p>';
-            }
+                hideLoading();
+            }, 500);
         }
         
         function showHeatmapScreen() {
@@ -1889,8 +2020,12 @@
                 return; 
             }
             
-            showScreen('heatmap-screen');
-            updateHeatmap();
+            showLoading("Loading heatmap...");
+            setTimeout(() => {
+                showScreen('heatmap-screen');
+                updateHeatmap();
+                hideLoading();
+            }, 500);
         }
         
         function updateHeatmap() {
@@ -1941,8 +2076,12 @@
                 return; 
             }
             
-            showScreen('trend-analysis-screen');
-            updateTrendAnalysis(user.uid);
+            showLoading("Loading trends...");
+            setTimeout(() => {
+                showScreen('trend-analysis-screen');
+                updateTrendAnalysis(user.uid);
+                hideLoading();
+            }, 500);
         }
         
         async function updateTrendAnalysis(uid) {
@@ -2118,33 +2257,33 @@
         
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             preventDefault(e);
-            showLoading();
+            showAuthLoading("Logging in...");
             const errEl = document.getElementById('login-error');
             errEl.classList.add('hidden');
             try {
                 await auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-password').value);
+                hideAuthLoading();
                 navigateHome();
             } catch (err) {
                 errEl.innerText = err.message;
                 errEl.classList.remove('hidden');
-            } finally {
-                hideLoading();
+                hideAuthLoading();
             }
         });
         
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             preventDefault(e);
-            showLoading();
+            showAuthLoading("Creating account...");
             const errEl = document.getElementById('register-error');
             errEl.classList.add('hidden');
             try {
                 await auth.createUserWithEmailAndPassword(document.getElementById('register-email').value, document.getElementById('register-password').value);
+                hideAuthLoading();
                 navigateHome();
             } catch (err) {
                 errEl.innerText = err.message;
                 errEl.classList.remove('hidden');
-            } finally {
-                hideLoading();
+                hideAuthLoading();
             }
         });
         

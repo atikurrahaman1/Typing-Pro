@@ -70,19 +70,19 @@
             transform-style: preserve-3d;
         }
         
-        /* 3D Header */
+        /* 3D Header - Fixed to be sticky and always visible */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 15px 30px;
             transform-style: preserve-3d;
-            position: relative;
-            z-index: 10;
-            background-color: var(--card-bg);
-            box-shadow: var(--card-shadow);
             position: sticky;
             top: 0;
+            z-index: 1000;
+            background-color: var(--card-bg);
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
         }
         
         .logo-container {
@@ -154,6 +154,7 @@
             transform-style: preserve-3d;
             position: relative;
             overflow: hidden;
+            pointer-events: auto;
         }
         
         body.dark-mode header nav a {
@@ -242,6 +243,7 @@
             transform-style: preserve-3d;
             position: relative;
             overflow: hidden;
+            pointer-events: auto;
         }
         
         .btn::before {
@@ -301,6 +303,7 @@
             cursor: pointer;
             transform-style: preserve-3d;
             transition: transform 0.3s ease;
+            pointer-events: auto;
         }
         
         #time-test-dropdown:hover {
@@ -628,7 +631,7 @@
             transform: translateY(-2px) translateZ(5px);
         }
         
-        /* Leaderboard Styles */
+        /* Leaderboard Styles - Fixed clicking issue */
         .leaderboard-tabs {
             display: flex;
             flex-wrap: wrap;
@@ -648,6 +651,7 @@
             transition: all 0.3s ease;
             transform-style: preserve-3d;
             user-select: none;
+            pointer-events: auto;
         }
         
         body.dark-mode .leaderboard-tabs button {
